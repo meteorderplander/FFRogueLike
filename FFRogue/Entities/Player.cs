@@ -1,4 +1,3 @@
-
 using FFRogue.Jobs;
 
 namespace FFRogue.Entities
@@ -37,6 +36,13 @@ namespace FFRogue.Entities
             if (!IsAlive) return;
             int amount = System.Math.Max(1, MaxHP / 10);
             CurrentHP = System.Math.Min(CurrentHP + amount, MaxHP);
+        }
+
+        public void RecoverMP()
+        {
+            if (!IsAlive || MaxMP <= 0) return;
+            int amount = System.Math.Max(1, MaxMP / 10);
+            CurrentMP = System.Math.Min(CurrentMP + amount, MaxMP);
         }
 
         public void GainXP(int amount)

@@ -4,8 +4,6 @@ using System.Linq;
 
 namespace FFRogue.Map
 {
-    //public struct Point { public int X; public int Y; public Point(int x, int y) { X = x; Y = y; } }
-
     public class DungeonMap
     {
         private readonly int _width;
@@ -17,7 +15,7 @@ namespace FFRogue.Map
         public Point? UpStairs { get; private set; }
         public Point? DownStairs { get; private set; }
 
-         public DungeonMap(int width, int height)
+        public DungeonMap(int width, int height)
         {
             _width = width; _height = height;
             _tiles = new char[_width, _height];
@@ -58,9 +56,8 @@ namespace FFRogue.Map
                 CreateRoom(r); _rooms.Add(r);
             }
 
-            UpStairs = _rooms[0].CenterPoint();
+            // Only create down stairs now (no more up stairs)
             DownStairs = _rooms[^1].CenterPoint();
-            _tiles[UpStairs.Value.X, UpStairs.Value.Y] = '<';
             _tiles[DownStairs.Value.X, DownStairs.Value.Y] = '>';
         }
 
@@ -82,7 +79,6 @@ namespace FFRogue.Map
         public FFRogue.Map.Point GetCenterRoom() => _rooms.Count > 0 ? _rooms[0].CenterPoint() : new FFRogue.Map.Point(_width / 2, _height / 2);
         public FFRogue.Map.Point RandomRoomCenter() { var r = _rooms[_rng.Next(_rooms.Count)]; return r.CenterPoint(); }
 
-
         public bool InBounds(int x, int y) => x >= 0 && y >= 0 && x < _width && y < _height;
         public bool IsWalkable(int x, int y) => InBounds(x, y) && (_tiles[x, y] == '.' || _tiles[x, y] == '<' || _tiles[x, y] == '>');
 
@@ -91,10 +87,32 @@ namespace FFRogue.Map
 
         public bool HasUpStairs(int x, int y) => UpStairs.HasValue && UpStairs.Value.X == x && UpStairs.Value.Y == y;
         public bool HasDownStairs(int x, int y) => DownStairs.HasValue && DownStairs.Value.X == x && DownStairs.Value.Y == y;
+
+        // New methods for boss floor support
+        public void SetTile(int x, int y, char tile)
+        {
+            if (InBounds(x, y))
+                _tiles[x, y] = tile;
+        }
+
+        public void ClearStairs()
+        {
+            UpStairs = null;
+            DownStairs = null;
+        }
+
+        public void RemoveUpStairs()
+        {
+            UpStairs = null;
+        }
+
+        public void SetDownStairs(Point point)
+        {
+            DownStairs = point;
+        }
     }
 
     public class Room
-
     {
         public int X1, Y1, X2, Y2;
         public Room(int x, int y, int w, int h) { X1 = x; Y1 = y; X2 = x + w; Y2 = y + h; }

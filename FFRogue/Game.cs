@@ -5,6 +5,7 @@ using FFRogue.Map;
 using FFRogue.Entities;
 using FFRogue.Jobs;
 using FFRogue.Combat;
+using FFRogue.Abilities;
 
 namespace FFRogue
 {
@@ -67,7 +68,7 @@ namespace FFRogue
         public void ShowTitle()
         {
             Console.Clear();
-            string banner = @"Final Fantasy Roguelike v 0.0.1";
+            string banner = @"Final Fantasy Roguelike v 0.0.2";
             Console.WriteLine("========================================");
             Console.WriteLine(banner);
             Console.WriteLine("Created by Meteor the Derplander");
@@ -81,7 +82,7 @@ namespace FFRogue
             Console.WriteLine("Maximize your console screen at this moment to see everything properly.");
             Console.WriteLine();
             Console.WriteLine("----[CONTROLS]----");
-            Console.WriteLine("Arrow Keys or H/J/K/L to move  •  '.' rest  •  '<' up  •  '>' down  •  'Q' quit");
+            Console.WriteLine("Arrow Keys or H/J/K/L to move  •  '.' rest  •  '>' down  •  'A' abilities  •  'Q' quit");
             Console.WriteLine();
         }
 
@@ -118,7 +119,7 @@ namespace FFRogue
         public void Run()
         {
             InitializeConsole();
-            GenerateFloor(startAtUp: true);
+            GenerateFloor(startAtDown: true);
 
             while (Player.IsAlive)
             {
@@ -130,6 +131,10 @@ namespace FFRogue
                 MonstersAct();
 
                 if (Turn % 2 == 0) Player.RecoverHP();
+                if (Turn % 5 == 0) Player.RecoverMP();
+
+                // Update ability cooldowns each turn
+                AbilitySystem.UpdateCooldowns();
 
                 Turn++;
             }
@@ -140,7 +145,66 @@ namespace FFRogue
             Console.ReadKey();
         }
 
-        private void GenerateFloor(bool startAtUp)
+        private bool IsBossFloor() => Floor % 10 == 0;
+
+        private void GenerateFloor(bool startAtDown)
+        {
+            bool isBoss = IsBossFloor();
+
+            if (isBoss)
+            {
+                // Generate single room boss floor
+                GenerateBossFloor(startAtDown);
+            }
+            else
+            {
+                // Generate normal multi-room floor
+                GenerateNormalFloor(startAtDown);
+            }
+
+            AddMessage($"Welcome to floor {Floor}!" + (isBoss ? " ** BOSS FLOOR **" : ""));
+        }
+
+        private void GenerateBossFloor(bool startAtDown)
+        {
+            Dungeon = new DungeonMap(Width, Height);
+
+            // Create a single large room in the center
+            int roomWidth = Math.Min(Width - 6, 20);
+            int roomHeight = Math.Min(Height - 6, 15);
+            int roomX = (Width - roomWidth) / 2;
+            int roomY = (Height - roomHeight) / 2;
+
+            // Fill with walls first
+            for (int x = 0; x < Width; x++)
+                for (int y = 0; y < Height; y++)
+                    Dungeon.SetTile(x, y, '#');
+
+            // Carve out the boss room
+            for (int x = roomX; x < roomX + roomWidth; x++)
+                for (int y = roomY; y < roomY + roomHeight; y++)
+                    Dungeon.SetTile(x, y, '.');
+
+            // Initialize exploration map
+            _explored = new bool[Width, Height];
+            Monsters.Clear();
+            _messages.Clear();
+
+            // Place player at the entrance (top of room)
+            Player.X = roomX + roomWidth / 2;
+            Player.Y = roomY + 1;
+
+            // Create and place the boss in the center of the room
+            var boss = Monster.CreateBossForFloor(Floor);
+            boss.X = roomX + roomWidth / 2;
+            boss.Y = roomY + roomHeight / 2;
+            Monsters.Add(boss);
+
+            // No stairs initially - they'll appear when boss dies
+            Dungeon.ClearStairs();
+        }
+
+        private void GenerateNormalFloor(bool startAtDown)
         {
             Dungeon = new DungeonMap(Width, Height);
             Dungeon.Generate();
@@ -152,9 +216,7 @@ namespace FFRogue
             _messages.Clear();
 
             FFRogue.Map.Point startPoint;
-            if (startAtUp && Dungeon.UpStairs.HasValue)
-                startPoint = Dungeon.UpStairs.Value;
-            else if (!startAtUp && Dungeon.DownStairs.HasValue)
+            if (!startAtDown && Dungeon.DownStairs.HasValue)
                 startPoint = Dungeon.DownStairs.Value;
             else
                 startPoint = Dungeon.GetCenterRoom();
@@ -163,10 +225,11 @@ namespace FFRogue
             Player.X = playerStartX;
             Player.Y = playerStartY;
 
+            // Generate monsters based on current floor tier
             int count = 6 + Floor / 2;
             for (int i = 0; i < count; i++)
             {
-                var m = Monster.RandomMonsterAtLevel(Floor);
+                var m = Monster.RandomMonsterForFloorTier(Floor);
                 var rc = Dungeon.RandomRoomCenter();
                 rc.Deconstruct(out int monsterX, out int monsterY);
                 m.X = monsterX;
@@ -174,16 +237,7 @@ namespace FFRogue
                 Monsters.Add(m);
             }
 
-            if (Floor % 10 == 0)
-            {
-                var boss = Monster.CreateBossForFloor(Floor);
-                var rc = Dungeon.RandomRoomCenter();
-                rc.Deconstruct(out int bossX, out int bossY);
-                boss.X = bossX;
-                boss.Y = bossY;
-                Monsters.Add(boss);
-            }
-
+            // Make sure player doesn't start on a monster
             while (Monsters.Any(mm => mm.X == Player.X && mm.Y == Player.Y))
             {
                 var rc = Dungeon.RandomRoomCenter();
@@ -192,7 +246,13 @@ namespace FFRogue
                 Player.Y = newPlayerY;
             }
 
-            AddMessage($"Welcome to floor {Floor}!");
+            // Remove up stairs - only down progression
+            if (Dungeon.UpStairs.HasValue)
+            {
+                var upStairs = Dungeon.UpStairs.Value;
+                Dungeon.SetTile(upStairs.X, upStairs.Y, '.');
+                Dungeon.RemoveUpStairs();
+            }
         }
 
         private void UpdateExploration()
@@ -262,9 +322,8 @@ namespace FFRogue
                         // FADED - explored but not currently visible
                         if (ch == '#') mapLine.Append('▓'); // Faded walls
                         else if (ch == '.') mapLine.Append('·'); // Faded floors
-                        else if (ch == '<') mapLine.Append('◀'); // Faded up stairs
                         else if (ch == '>') mapLine.Append('▶'); // Faded down stairs
-                        else mapLine.Append('░'); // Other faded stuff
+                        else mapLine.Append('▒'); // Other faded stuff
                     }
                 }
                 screenLines.Add(mapLine.ToString());
@@ -287,7 +346,7 @@ namespace FFRogue
             screenLines.Add($"ATK {Player.Attack}  DEF {Player.Defense}  STR {stats.STR}  DEX {stats.DEX}  INT {stats.INT}  MND {stats.MND}  VIT {stats.VIT}");
             screenLines.Add($"Turn {Turn}   LEVEL {Player.Level}  XP {Player.XP}   Floor {Floor}");
 
-            screenLines.Add("Arrows/HJKL move • '.' rest • '<' up • '>' down • 'Q' quit");
+            screenLines.Add("Arrows/HJKL move • '.' rest • '>' down • 'A' abilities • 'Q' quit");
 
             // Output everything at once
             Console.Clear();
@@ -297,11 +356,11 @@ namespace FFRogue
             }
         }
 
-        private void AddMessage(string message)
+        public void AddMessage(string message)
         {
-            _messages.Insert(0, message);
+            _messages.Add(message);
             if (_messages.Count > MaxMessages)
-                _messages.RemoveAt(MaxMessages);
+                _messages.RemoveAt(0);
         }
 
         private bool HandleInput()
@@ -320,13 +379,25 @@ namespace FFRogue
             if (char.ToLower(keyChar) == 'q') Environment.Exit(0);
             if (keyChar == '.') { acted = true; AddMessage($"{Player.Name} rests."); }
 
-            if (keyChar == '<' && Dungeon.HasUpStairs(Player.X, Player.Y) && Floor > 1)
+            // Abilities menu
+            if (char.ToLower(keyChar) == 'a')
             {
-                Floor--; GenerateFloor(startAtUp: false); acted = true; return acted;
+                ShowAbilitiesMenu();
+                return false; // Don't consume a turn for opening menu
             }
+
+            // Only down stairs allowed now, and on boss floors only after boss is defeated
             if (keyChar == '>' && Dungeon.HasDownStairs(Player.X, Player.Y))
             {
-                Floor++; GenerateFloor(startAtUp: true); acted = true; return acted;
+                if (IsBossFloor() && Monsters.Any(m => m.IsAlive && m.IsBoss))
+                {
+                    AddMessage("The stairs are blocked by the boss's power!");
+                    return false;
+                }
+                Floor++;
+                GenerateFloor(startAtDown: true);
+                acted = true;
+                return acted;
             }
 
             if (dx != 0 || dy != 0)
@@ -341,9 +412,16 @@ namespace FFRogue
                     AddMessage(result);
                     if (!target.IsAlive)
                     {
-                        int xpGain = target.IsBoss ? 50 + 5 * Floor : 10 + 2 * Floor;
+                        int xpGain = target.IsBoss ? 100 + 10 * Floor : 10 + 2 * Floor;
                         Player.GainXP(xpGain);
                         AddMessage($"{Player.Name} gains {xpGain} XP!");
+
+                        // If boss dies on boss floor, create stairs
+                        if (IsBossFloor() && target.IsBoss)
+                        {
+                            CreateBossFloorStairs();
+                            AddMessage("The way forward opens!");
+                        }
                     }
                     acted = true;
                 }
@@ -354,6 +432,137 @@ namespace FFRogue
             }
 
             return acted;
+        }
+
+        private void CreateBossFloorStairs()
+        {
+            // Place down stairs near the player's position
+            int stairsX = Player.X;
+            int stairsY = Player.Y + 2; // Slightly south of player
+
+            // Make sure it's in bounds and walkable
+            if (Dungeon.InBounds(stairsX, stairsY) && Dungeon.GetGlyph(stairsX, stairsY) == '.')
+            {
+                Dungeon.SetTile(stairsX, stairsY, '>');
+                Dungeon.SetDownStairs(new Point(stairsX, stairsY));
+            }
+            else
+            {
+                // Find the nearest floor tile
+                for (int radius = 1; radius <= 5; radius++)
+                {
+                    for (int dx = -radius; dx <= radius; dx++)
+                    {
+                        for (int dy = -radius; dy <= radius; dy++)
+                        {
+                            int checkX = Player.X + dx;
+                            int checkY = Player.Y + dy;
+                            if (Dungeon.InBounds(checkX, checkY) && Dungeon.GetGlyph(checkX, checkY) == '.')
+                            {
+                                Dungeon.SetTile(checkX, checkY, '>');
+                                Dungeon.SetDownStairs(new Point(checkX, checkY));
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ShowAbilitiesMenu()
+        {
+            var abilities = AbilitySystem.GetAbilitiesForJob(Player.Job);
+            if (abilities.Count == 0)
+            {
+                AddMessage("No abilities available for this job yet.");
+                return;
+            }
+
+            while (true)
+            {
+                // Clear screen and show menu
+                Console.Clear();
+                Console.WriteLine("╔════════════════════════════════════════════════════════╗");
+                Console.WriteLine("║                   ABILITIES MENU                       ║");
+                Console.WriteLine("╠════════════════════════════════════════════════════════╣");
+
+                // Fixed player info line with proper padding calculation
+                string playerInfo = $"{Player.Name} the {JobInfo.Get(Player.Job).DisplayName}";
+                if (playerInfo.Length > 54) playerInfo = playerInfo.Substring(0, 51) + "...";
+                Console.WriteLine($"║ {playerInfo.PadRight(54)} ║");
+
+                // Fixed MP line with proper padding
+                string mpInfo = $"MP: {Player.CurrentMP}/{Player.MaxMP}";
+                Console.WriteLine($"║ {mpInfo.PadRight(54)} ║");
+
+                Console.WriteLine("╠════════════════════════════════════════════════════════╣");
+
+                for (int i = 0; i < abilities.Count; i++)
+                {
+                    var ability = abilities[i];
+                    int cooldown = AbilitySystem.GetCooldownRemaining(Player, ability);
+                    string mpText = ability.MPCost > 0 ? $"[{ability.MPCost} MP]" : "[Free]";
+                    string status = "";
+                    if (cooldown > 0)
+                        status = $"[CD: {cooldown}]";
+                    else if (Player.CurrentMP < ability.MPCost)
+                        status = "[No MP]";
+                    else
+                        status = "[Ready]";
+
+                    // Build ability line with proper spacing
+                    string abilityName = ability.Name.Length > 12 ? ability.Name.Substring(0, 12) : ability.Name;
+                    string abilityInfo = $"[{ability.Hotkey}] {abilityName} {mpText} {status}";
+                    Console.WriteLine($"║ {abilityInfo.PadRight(54)} ║");
+
+                    // Description line with truncation if needed
+                    string description = ability.Description.Length > 48 ? ability.Description.Substring(0, 45) + "..." : ability.Description;
+                    Console.WriteLine($"║     {description.PadRight(50)} ║");
+                }
+
+                Console.WriteLine("╠════════════════════════════════════════════════════════╣");
+                Console.WriteLine("║ Select ability by hotkey, or ESC to return             ║");
+                Console.WriteLine("╚════════════════════════════════════════════════════════╝");
+                var key = Console.ReadKey(true);
+
+                if (key.Key == ConsoleKey.Escape)
+                    break;
+
+                // Find ability by hotkey
+                var selectedAbility = abilities.FirstOrDefault(a => a.Hotkey == key.KeyChar);
+                if (selectedAbility != null)
+                {
+                    var result = AbilitySystem.UseAbility(Player, this, selectedAbility);
+
+                    switch (result)
+                    {
+                        case AbilityResult.Success:
+                            // Ability was successful, break out and continue game
+                            return;
+                        case AbilityResult.InsufficientMP:
+                            Console.WriteLine("\nNot enough MP! Press any key...");
+                            Console.ReadKey(true);
+                            break;
+                        case AbilityResult.OnCooldown:
+                            Console.WriteLine("\nAbility is on cooldown! Press any key...");
+                            Console.ReadKey(true);
+                            break;
+                        case AbilityResult.InvalidTarget:
+                            Console.WriteLine("\nNo valid target! Press any key...");
+                            Console.ReadKey(true);
+                            break;
+                        case AbilityResult.AlreadyAtMax:
+                            Console.WriteLine("\nAlready at maximum! Press any key...");
+                            Console.ReadKey(true);
+                            break;
+                        default:
+                            Console.WriteLine("\nAbility failed! Press any key...");
+                            Console.ReadKey(true);
+                            break;
+                    }
+                }
+            }
+            // Screen will be redrawn on next render
         }
 
         private void MonstersAct()

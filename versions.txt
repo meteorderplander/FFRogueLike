@@ -1,0 +1,16 @@
+FFRogueLike Changes
+
+
+Version 0.0.1
+- First version.
+- Ability to pick your name and job.
+- Can move around the map and go up and down stairs.
+- Can do basic combat by running into a monster.
+- Bosses spawn every 10 levels.
+
+Version 0.0.2
+- Added an abilities system. Press A in-game to access your job's abilities.
+- Added the ability for MP to regen every few turns.
+- Changed the bosses so that they appear alone on the boss floors. Stairs no longer appear until bosses are beat.
+- Changed bosses so that each boss floor has access to only a certain number of boss names to prevent repeating.
+- Removed the stairs leading up.  The game is now all about going down.

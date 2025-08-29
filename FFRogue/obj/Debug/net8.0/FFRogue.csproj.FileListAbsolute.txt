@@ -1,0 +1,14 @@
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\FFRogue.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\FFRogue.AssemblyInfoInputs.cache
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\FFRogue.AssemblyInfo.cs
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\FFRogue.csproj.CoreCompileInputs.cache
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\bin\Debug\net8.0\FFRogue.exe
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\bin\Debug\net8.0\FFRogue.deps.json
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\bin\Debug\net8.0\FFRogue.runtimeconfig.json
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\bin\Debug\net8.0\FFRogue.dll
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\bin\Debug\net8.0\FFRogue.pdb
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\FFRogue.dll
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\refint\FFRogue.dll
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\FFRogue.pdb
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\FFRogue.genruntimeconfig.cache
+C:\Users\iyoub\source\repos\FFRogue\FFRogue\obj\Debug\net8.0\ref\FFRogue.dll
