@@ -54,7 +54,16 @@ namespace FFRogue.Entities
                 Level++;
                 MaxHP += 5; CurrentHP = MaxHP;
                 Attack += 1; Defense += 1;
+
+                // Check for new abilities unlocked
+                CheckForNewAbilities();
             }
+        }
+
+        private void CheckForNewAbilities()
+        {
+            // This would be called from the game to show messages about new abilities
+            // The actual ability availability will be handled in AbilitySystem
         }
     }
 }

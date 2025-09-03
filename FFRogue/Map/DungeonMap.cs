@@ -15,6 +15,8 @@ namespace FFRogue.Map
         public Point? UpStairs { get; private set; }
         public Point? DownStairs { get; private set; }
 
+        public bool HasChest(int x, int y) => InBounds(x, y) && _tiles[x, y] == 'C';
+
         public DungeonMap(int width, int height)
         {
             _width = width; _height = height;
@@ -31,34 +33,61 @@ namespace FFRogue.Map
             int roomCount = _rng.Next(6, 10);
             int minSize = 4, maxSize = 9;
 
-            for (int i = 0; i < roomCount; i++)
+            int totalAttempts = 0;
+            const int maxTotalAttempts = 1000; // Prevent infinite loops
+
+            for (int i = 0; i < roomCount && totalAttempts < maxTotalAttempts; i++)
             {
-                int w = _rng.Next(minSize, maxSize);
-                int h = _rng.Next(minSize, maxSize);
-                int x = _rng.Next(1, _width - w - 1);
-                int y = _rng.Next(1, _height - h - 1);
-                var room = new Room(x, y, w, h);
-                if (_rooms.Any(r => r.Intersects(room))) { i--; continue; }
-                CreateRoom(room);
-                if (_rooms.Count > 0)
+                int roomAttempts = 0;
+                const int maxRoomAttempts = 100;
+                bool roomPlaced = false;
+
+                while (roomAttempts < maxRoomAttempts && !roomPlaced)
                 {
-                    var (px, py) = _rooms[^1].Center();
-                    var (cx, cy) = room.Center();
-                    if (_rng.Next(2) == 0) { CreateHTunnel(px, cx, py); CreateVTunnel(py, cy, cx); }
-                    else { CreateVTunnel(py, cy, px); CreateHTunnel(px, cx, cy); }
+                    int w = _rng.Next(minSize, maxSize);
+                    int h = _rng.Next(minSize, maxSize);
+                    int x = _rng.Next(1, _width - w - 1);
+                    int y = _rng.Next(1, _height - h - 1);
+                    var room = new Room(x, y, w, h);
+
+                    if (!_rooms.Any(r => r.Intersects(room)))
+                    {
+                        CreateRoom(room);
+                        if (_rooms.Count > 0)
+                        {
+                            var (px, py) = _rooms[^1].Center();
+                            var (cx, cy) = room.Center();
+                            if (_rng.Next(2) == 0) { CreateHTunnel(px, cx, py); CreateVTunnel(py, cy, cx); }
+                            else { CreateVTunnel(py, cy, px); CreateHTunnel(px, cx, cy); }
+                        }
+                        _rooms.Add(room);
+                        roomPlaced = true;
+                    }
+                    roomAttempts++;
+                    totalAttempts++;
                 }
-                _rooms.Add(room);
+
+                // If we couldn't place a room after many attempts, skip it
+                if (!roomPlaced)
+                {
+                    i--; // Don't increment i, but don't try forever either
+                }
             }
 
+            // Ensure we have at least one room
             if (_rooms.Count == 0)
             {
-                var r = new Room(2, 2, _width - 4, _height - 4);
-                CreateRoom(r); _rooms.Add(r);
+                var r = new Room(2, 2, Math.Min(_width - 4, 10), Math.Min(_height - 4, 8));
+                CreateRoom(r);
+                _rooms.Add(r);
             }
 
             // Only create down stairs now (no more up stairs)
-            DownStairs = _rooms[^1].CenterPoint();
-            _tiles[DownStairs.Value.X, DownStairs.Value.Y] = '>';
+            if (_rooms.Count > 0)
+            {
+                DownStairs = _rooms[^1].CenterPoint();
+                _tiles[DownStairs.Value.X, DownStairs.Value.Y] = '>';
+            }
         }
 
         private void CreateRoom(Room r)
@@ -80,7 +109,7 @@ namespace FFRogue.Map
         public FFRogue.Map.Point RandomRoomCenter() { var r = _rooms[_rng.Next(_rooms.Count)]; return r.CenterPoint(); }
 
         public bool InBounds(int x, int y) => x >= 0 && y >= 0 && x < _width && y < _height;
-        public bool IsWalkable(int x, int y) => InBounds(x, y) && (_tiles[x, y] == '.' || _tiles[x, y] == '<' || _tiles[x, y] == '>');
+        public bool IsWalkable(int x, int y) => InBounds(x, y) && (_tiles[x, y] == '.' || _tiles[x, y] == '<' || _tiles[x, y] == '>' || _tiles[x, y] == 'C');
 
         public char GetGlyph(int x, int y) => InBounds(x, y) ? _tiles[x, y] : ' ';
         public bool IsVisible(int px, int py, int x, int y) { int dx = px - x, dy = py - y; return dx * dx + dy * dy <= 8 * 8; }

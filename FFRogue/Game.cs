@@ -68,13 +68,13 @@ namespace FFRogue
         public void ShowTitle()
         {
             Console.Clear();
-            string banner = @"Final Fantasy Roguelike v 0.0.2";
-            Console.WriteLine("========================================");
-            Console.WriteLine(banner);
-            Console.WriteLine("Created by Meteor the Derplander");
-            Console.WriteLine("========================================");
-            Console.WriteLine("A concept in progress");
-            Console.WriteLine("--------");
+            Console.WriteLine("╔════════════════════════════════════════════════════════╗");
+            Console.WriteLine("║             FINAL FANTASY ROGUELIKE    0.0.3           ║");
+            Console.WriteLine("╠════════════════════════════════════════════════════════╣");
+            Console.WriteLine("╠           Created by Meteor the Derplander             ╣");
+            Console.WriteLine("╠════════════════════════════════════════════════════════╣");
+            Console.WriteLine("╠                 A work in progress                     ╣");
+            Console.WriteLine("╚════════════════════════════════════════════════════════╝");
             Console.WriteLine("Hear...Feel..Think! Hydaelyn has called you to be a Warrior of Light!");
             Console.WriteLine("Descend, grow stronger, and vanquish the darkness!");
             Console.WriteLine();
@@ -215,12 +215,8 @@ namespace FFRogue
             Monsters.Clear();
             _messages.Clear();
 
-            FFRogue.Map.Point startPoint;
-            if (!startAtDown && Dungeon.DownStairs.HasValue)
-                startPoint = Dungeon.DownStairs.Value;
-            else
-                startPoint = Dungeon.GetCenterRoom();
-
+            // Always start at center room for new floors
+            FFRogue.Map.Point startPoint = Dungeon.GetCenterRoom();
             startPoint.Deconstruct(out int playerStartX, out int playerStartY);
             Player.X = playerStartX;
             Player.Y = playerStartY;
@@ -237,13 +233,54 @@ namespace FFRogue
                 Monsters.Add(m);
             }
 
-            // Make sure player doesn't start on a monster
-            while (Monsters.Any(mm => mm.X == Player.X && mm.Y == Player.Y))
+            // Generate chests with safety limit
+            int chestCount = _rng.Next(1, 4);
+            for (int i = 0; i < chestCount; i++)
+            {
+                var chestPos = Dungeon.RandomRoomCenter();
+                int attempts = 0;
+                const int maxAttempts = 100;
+
+                // Make sure chest doesn't spawn on player or monsters
+                while (attempts < maxAttempts &&
+                       ((chestPos.X == Player.X && chestPos.Y == Player.Y) ||
+                        Monsters.Any(m => m.X == chestPos.X && m.Y == chestPos.Y) ||
+                        Dungeon.GetGlyph(chestPos.X, chestPos.Y) != '.'))
+                {
+                    chestPos = Dungeon.RandomRoomCenter();
+                    attempts++;
+                }
+
+                // Only place chest if we found a valid position
+                if (attempts < maxAttempts)
+                {
+                    Dungeon.SetTile(chestPos.X, chestPos.Y, 'C');
+                }
+            }
+
+            // Make sure player doesn't start on a monster with safety limit
+            int playerMoveAttempts = 0;
+            const int maxPlayerMoveAttempts = 50;
+
+            while (playerMoveAttempts < maxPlayerMoveAttempts &&
+                   Monsters.Any(mm => mm.X == Player.X && mm.Y == Player.Y))
             {
                 var rc = Dungeon.RandomRoomCenter();
                 rc.Deconstruct(out int newPlayerX, out int newPlayerY);
                 Player.X = newPlayerX;
                 Player.Y = newPlayerY;
+                playerMoveAttempts++;
+            }
+
+            // If we still have conflicts after max attempts, move conflicting monsters instead
+            if (playerMoveAttempts >= maxPlayerMoveAttempts)
+            {
+                foreach (var monster in Monsters.Where(m => m.X == Player.X && m.Y == Player.Y).ToList())
+                {
+                    var newPos = Dungeon.RandomRoomCenter();
+                    monster.X = newPos.X;
+                    monster.Y = newPos.Y;
+                }
             }
 
             // Remove up stairs - only down progression
@@ -257,7 +294,8 @@ namespace FFRogue
 
         private void UpdateExploration()
         {
-            int radius = 8;
+            // Reduced field of vision from 8 to 6, but boss floors fully visible
+            int radius = IsBossFloor() ? 100 : 6;
             for (int y = 0; y < Height; y++)
             {
                 for (int x = 0; x < Width; x++)
@@ -289,8 +327,8 @@ namespace FFRogue
             }
             screenLines.Add(""); // Empty line after messages
 
-            // MAP IN MIDDLE
-            int radius = 8;
+            // MAP IN MIDDLE - Modified visibility radius
+            int radius = IsBossFloor() ? 100 : 6; // Boss floors fully visible, normal floors radius 6
             for (int y = 0; y < Height; y++)
             {
                 var mapLine = new System.Text.StringBuilder();
@@ -322,8 +360,9 @@ namespace FFRogue
                         // FADED - explored but not currently visible
                         if (ch == '#') mapLine.Append('▓'); // Faded walls
                         else if (ch == '.') mapLine.Append('·'); // Faded floors
-                        else if (ch == '>') mapLine.Append('▶'); // Faded down stairs
-                        else mapLine.Append('▒'); // Other faded stuff
+                        else if (ch == '>') mapLine.Append('►'); // Faded down stairs
+                        else if (ch == 'C') mapLine.Append('▫'); // Faded chest
+                        else mapLine.Append('░'); // Other faded stuff
                     }
                 }
                 screenLines.Add(mapLine.ToString());
@@ -471,7 +510,7 @@ namespace FFRogue
 
         private void ShowAbilitiesMenu()
         {
-            var abilities = AbilitySystem.GetAbilitiesForJob(Player.Job);
+            var abilities = AbilitySystem.GetAbilitiesForJob(Player.Job, Player.Level); // Pass player level
             if (abilities.Count == 0)
             {
                 AddMessage("No abilities available for this job yet.");
@@ -511,7 +550,7 @@ namespace FFRogue
                         status = "[Ready]";
 
                     // Build ability line with proper spacing
-                    string abilityName = ability.Name.Length > 12 ? ability.Name.Substring(0, 12) : ability.Name;
+                    string abilityName = ability.Name.Length > 13 ? ability.Name.Substring(0, 13) : ability.Name;
                     string abilityInfo = $"[{ability.Hotkey}] {abilityName} {mpText} {status}";
                     Console.WriteLine($"║ {abilityInfo.PadRight(54)} ║");
 

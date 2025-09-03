@@ -40,59 +40,58 @@ namespace FFRogue.Entities
 
             switch (tier)
             {
-                case 1: // Floors 1-10
-                    pool.Add(() => new Monster("Imp", 'i', baseHP, baseATK, baseDEF));
-                    pool.Add(() => new Monster("Spriggan", 's', baseHP + 2, baseATK + 1, baseDEF));
-                    pool.Add(() => new Monster("Goblin", 'g', baseHP + 3, baseATK, baseDEF));
-                    pool.Add(() => new Monster("Armadillo", 'a', baseHP + 1, baseATK, baseDEF + 1));
-                    pool.Add(() => new Monster("Wolf", 'w', baseHP + 2, baseATK + 1, baseDEF));
-                    pool.Add(() => new Monster("Kobold", 'k', baseHP + 3, baseATK + 1, baseDEF + 1));
-                    pool.Add(() => new Monster("Bat Swarm", 'b', baseHP, baseATK + 2, baseDEF));
-                    pool.Add(() => new Monster("Slime", 'S', baseHP + 4, baseATK, baseDEF + 2));
+                case 1: // Floors 1-10 - Classic FF early game enemies
+                    pool.Add(() => new Monster("Goblin", 'g', baseHP, baseATK, baseDEF));
+                    pool.Add(() => new Monster("Imp", 'i', baseHP + 1, baseATK, baseDEF));
+                    pool.Add(() => new Monster("Skeleton", 's', baseHP + 2, baseATK, baseDEF));
+                    pool.Add(() => new Monster("Wild Boar", 'b', baseHP + 3, baseATK + 1, baseDEF));
+                    pool.Add(() => new Monster("Hornet", 'h', baseHP, baseATK + 2, baseDEF));
+                    pool.Add(() => new Monster("Coeurl", 'c', baseHP + 2, baseATK + 1, baseDEF));
+                    pool.Add(() => new Monster("Chocobo", 'C', baseHP + 4, baseATK, baseDEF + 1));
                     break;
 
-                case 2: // Floors 11-20
-                    pool.Add(() => new Monster("Orc", 'o', baseHP + 3, baseATK + 2, baseDEF));
-                    pool.Add(() => new Monster("Zombie", 'z', baseHP + 4, baseATK + 1, baseDEF));
-                    pool.Add(() => new Monster("Bomb", 'B', baseHP + 5, baseATK + 3, baseDEF));
-                    pool.Add(() => new Monster("Lizardman", 'l', baseHP + 6, baseATK + 2, baseDEF + 1));
-                    pool.Add(() => new Monster("Basilisk", 'b', baseHP + 8, baseATK + 3, baseDEF + 2));
-                    pool.Add(() => new Monster("Ghoul", 'G', baseHP + 7, baseATK + 2, baseDEF + 1));
-                    pool.Add(() => new Monster("Wraith", 'W', baseHP + 5, baseATK + 4, baseDEF));
-                    pool.Add(() => new Monster("Minotaur", 'm', baseHP + 10, baseATK + 5, baseDEF + 2));
+                case 2: // Floors 11-20 - Mid-tier FF monsters
+                    pool.Add(() => new Monster("Ochu", 'O', baseHP + 6, baseATK + 2, baseDEF + 1));
+                    pool.Add(() => new Monster("Flan", 'F', baseHP + 8, baseATK, baseDEF + 3));
+                    pool.Add(() => new Monster("Bomb", 'B', baseHP + 3, baseATK + 4, baseDEF));
+                    pool.Add(() => new Monster("Sahagin", 'S', baseHP + 5, baseATK + 2, baseDEF + 1));
+                    pool.Add(() => new Monster("Tonberry", 't', baseHP + 4, baseATK + 3, baseDEF + 2));
+                    pool.Add(() => new Monster("Malboro", 'M', baseHP + 10, baseATK + 1, baseDEF + 2));
+                    pool.Add(() => new Monster("Ahriman", 'A', baseHP + 7, baseATK + 3, baseDEF));
+                    pool.Add(() => new Monster("Zu", 'Z', baseHP + 6, baseATK + 2, baseDEF + 1));
                     break;
 
-                case 3: // Floors 21-30
-                    pool.Add(() => new Monster("Lamia", 'L', baseHP + 7, baseATK + 4, baseDEF + 1));
-                    pool.Add(() => new Monster("Ogre", 'O', baseHP + 12, baseATK + 4, baseDEF + 2));
-                    pool.Add(() => new Monster("Medusa", 'M', baseHP + 9, baseATK + 5, baseDEF + 2));
-                    pool.Add(() => new Monster("Treant", 'T', baseHP + 15, baseATK + 3, baseDEF + 3));
-                    pool.Add(() => new Monster("Chimera", 'C', baseHP + 14, baseATK + 6, baseDEF + 3));
-                    pool.Add(() => new Monster("Golem", 'G', baseHP + 20, baseATK + 4, baseDEF + 6));
-                    pool.Add(() => new Monster("Manticore", 'M', baseHP + 16, baseATK + 7, baseDEF + 2));
-                    pool.Add(() => new Monster("Wendigo", 'W', baseHP + 12, baseATK + 6, baseDEF + 2));
+                case 3: // Floors 21-30 - Stronger FF creatures
+                    pool.Add(() => new Monster("Chimera", 'C', baseHP + 15, baseATK + 5, baseDEF + 3));
+                    pool.Add(() => new Monster("Wyvern", 'W', baseHP + 12, baseATK + 6, baseDEF + 2));
+                    pool.Add(() => new Monster("Gargoyle", 'G', baseHP + 14, baseATK + 4, baseDEF + 4));
+                    pool.Add(() => new Monster("Minotaur", 'M', baseHP + 16, baseATK + 5, baseDEF + 3));
+                    pool.Add(() => new Monster("Cockatrice", 'K', baseHP + 11, baseATK + 6, baseDEF + 2));
+                    pool.Add(() => new Monster("Ogre", 'O', baseHP + 18, baseATK + 4, baseDEF + 4));
+                    pool.Add(() => new Monster("Lamia", 'L', baseHP + 13, baseATK + 5, baseDEF + 3));
+                    pool.Add(() => new Monster("Basilisk", 'B', baseHP + 14, baseATK + 5, baseDEF + 3));
                     break;
 
-                case 4: // Floors 31-40
-                    pool.Add(() => new Monster("Dragon Whelp", 'd', baseHP + 18, baseATK + 8, baseDEF + 3));
-                    pool.Add(() => new Monster("Behemoth", 'B', baseHP + 24, baseATK + 9, baseDEF + 4));
-                    pool.Add(() => new Monster("Evil Eye", 'e', baseHP + 15, baseATK + 7, baseDEF + 2));
-                    pool.Add(() => new Monster("Banshee", 'b', baseHP + 12, baseATK + 8, baseDEF + 1));
-                    pool.Add(() => new Monster("Malboro", 'M', baseHP + 20, baseATK + 8, baseDEF + 3));
-                    pool.Add(() => new Monster("Hydra", 'H', baseHP + 25, baseATK + 9, baseDEF + 4));
-                    pool.Add(() => new Monster("Vampire", 'V', baseHP + 18, baseATK + 10, baseDEF + 2));
-                    pool.Add(() => new Monster("Lich", 'L', baseHP + 22, baseATK + 9, baseDEF + 3));
+                case 4: // Floors 31-40 - High-tier FF monsters
+                    pool.Add(() => new Monster("Behemoth", 'B', baseHP + 25, baseATK + 8, baseDEF + 4));
+                    pool.Add(() => new Monster("Red Dragon", 'R', baseHP + 22, baseATK + 9, baseDEF + 3));
+                    pool.Add(() => new Monster("Iron Giant", 'I', baseHP + 28, baseATK + 7, baseDEF + 6));
+                    pool.Add(() => new Monster("Great Malboro", 'M', baseHP + 24, baseATK + 6, baseDEF + 5));
+                    pool.Add(() => new Monster("Mindflayer", 'F', baseHP + 20, baseATK + 10, baseDEF + 2));
+                    pool.Add(() => new Monster("Lich", 'L', baseHP + 18, baseATK + 9, baseDEF + 4));
+                    pool.Add(() => new Monster("Hecteyes", 'H', baseHP + 21, baseATK + 8, baseDEF + 3));
+                    pool.Add(() => new Monster("Vampyr", 'V', baseHP + 23, baseATK + 9, baseDEF + 3));
                     break;
 
-                case 5: // Floors 41-50
-                    pool.Add(() => new Monster("Ancient Dragon", 'D', baseHP + 30, baseATK + 12, baseDEF + 5));
-                    pool.Add(() => new Monster("Arch Demon", 'A', baseHP + 28, baseATK + 14, baseDEF + 4));
-                    pool.Add(() => new Monster("Death Knight", 'K', baseHP + 25, baseATK + 11, baseDEF + 6));
-                    pool.Add(() => new Monster("Void Horror", 'V', baseHP + 32, baseATK + 13, baseDEF + 3));
-                    pool.Add(() => new Monster("Titan", 'T', baseHP + 35, baseATK + 10, baseDEF + 8));
-                    pool.Add(() => new Monster("Shadowlord", 'S', baseHP + 27, baseATK + 15, baseDEF + 4));
-                    pool.Add(() => new Monster("Fallen Angel", 'F', baseHP + 29, baseATK + 12, baseDEF + 5));
-                    pool.Add(() => new Monster("Apocalypse", 'Ω', baseHP + 40, baseATK + 16, baseDEF + 6));
+                case 5: // Floors 41-50 - Elite FF creatures
+                    pool.Add(() => new Monster("King Behemoth", 'K', baseHP + 35, baseATK + 12, baseDEF + 6));
+                    pool.Add(() => new Monster("Ancient Dragon", 'A', baseHP + 32, baseATK + 14, baseDEF + 5));
+                    pool.Add(() => new Monster("Wraith", 'W', baseHP + 28, baseATK + 15, baseDEF + 3));
+                    pool.Add(() => new Monster("Demon", 'D', baseHP + 30, baseATK + 13, baseDEF + 4));
+                    pool.Add(() => new Monster("Death Claw", 'C', baseHP + 26, baseATK + 16, baseDEF + 2));
+                    pool.Add(() => new Monster("Great Wyrm", 'G', baseHP + 38, baseATK + 11, baseDEF + 7));
+                    pool.Add(() => new Monster("Shadow", 'S', baseHP + 24, baseATK + 17, baseDEF + 1));
+                    pool.Add(() => new Monster("Reaper", 'R', baseHP + 33, baseATK + 14, baseDEF + 4));
                     break;
 
                 default: // Beyond floor 50 - mix of all high-tier monsters

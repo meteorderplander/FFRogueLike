@@ -1,7 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using FFRogue.Jobs;
+﻿
 using FFRogue.Entities;
+using FFRogue.Jobs;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace FFRogue.Abilities
 {
@@ -21,6 +23,7 @@ namespace FFRogue.Abilities
         public string Description { get; set; } = "";
         public int MPCost { get; set; } = 0;
         public int Cooldown { get; set; } = 0; // Turns
+        public int RequiredLevel { get; set; } = 1;
         public char Hotkey { get; set; } = '1';
         public AbilityType Type { get; set; }
         public Func<Player, Game, AbilityResult> Execute { get; set; } = (p, g) => AbilityResult.Failed;
@@ -53,11 +56,11 @@ namespace FFRogue.Abilities
                 {
                     Name = "Cover",
                     Description = "Reduce damage taken for 5 turns",
-                    MPCost = 8,
+                    MPCost = 5,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Defensive,
                     Execute = (player, game) => {
-                        // Temp buff implementation - just heal for now
                         int heal = player.MaxHP / 4;
                         player.CurrentHP = Math.Min(player.CurrentHP + heal, player.MaxHP);
                         game.AddMessage($"{player.Name} uses Cover! Defense increased!");
@@ -68,7 +71,8 @@ namespace FFRogue.Abilities
                 {
                     Name = "Holy Strike",
                     Description = "Powerful holy attack against adjacent enemies",
-                    MPCost = 12,
+                    MPCost = 8,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Holy Strike", 1.5f)
@@ -77,7 +81,8 @@ namespace FFRogue.Abilities
                 {
                     Name = "Spirits Within",
                     Description = "Unleash inner power for massive single target damage",
-                    MPCost = 15,
+                    MPCost = 12,
+                    RequiredLevel = 6,
                     Cooldown = 8,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
@@ -87,7 +92,8 @@ namespace FFRogue.Abilities
                 {
                     Name = "Circle of Scorn",
                     Description = "AoE damage over time effect around you",
-                    MPCost = 18,
+                    MPCost = 15,
+                    RequiredLevel = 10,
                     Cooldown = 12,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -102,6 +108,7 @@ namespace FFRogue.Abilities
                     Name = "Berserk",
                     Description = "Increase attack power but take more damage",
                     MPCost = 6,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => {
@@ -115,6 +122,7 @@ namespace FFRogue.Abilities
                     Name = "Cleave",
                     Description = "Attack all adjacent enemies",
                     MPCost = 10,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Cleave", 1.2f)
@@ -124,6 +132,7 @@ namespace FFRogue.Abilities
                     Name = "Fell Cleave",
                     Description = "Devastating attack that ignores defense",
                     MPCost = 20,
+                    RequiredLevel = 7,
                     Cooldown = 6,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
@@ -134,6 +143,7 @@ namespace FFRogue.Abilities
                     Name = "Upheaval",
                     Description = "Powerful single target strike",
                     MPCost = 12,
+                    RequiredLevel = 5,
                     Cooldown = 10,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -148,6 +158,7 @@ namespace FFRogue.Abilities
                     Name = "Unleash",
                     Description = "Dark energy damages all nearby enemies",
                     MPCost = 14,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Unleash", 1.4f)
@@ -157,6 +168,7 @@ namespace FFRogue.Abilities
                     Name = "Abyssal Drain",
                     Description = "Dark spell that damages and heals you",
                     MPCost = 16,
+                    RequiredLevel = 4,
                     Cooldown = 8,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
@@ -176,6 +188,7 @@ namespace FFRogue.Abilities
                     Name = "Carve and Spit",
                     Description = "Vicious attack that restores MP",
                     MPCost = 10,
+                    RequiredLevel = 6,
                     Cooldown = 12,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
@@ -199,6 +212,7 @@ namespace FFRogue.Abilities
                     Name = "Keen Edge",
                     Description = "Sharp gunblade strike",
                     MPCost = 8,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Keen Edge", 1.3f)
@@ -208,6 +222,7 @@ namespace FFRogue.Abilities
                     Name = "Demon Slice",
                     Description = "Wide arc attack hitting multiple enemies",
                     MPCost = 12,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Demon Slice", 1.2f)
@@ -217,6 +232,7 @@ namespace FFRogue.Abilities
                     Name = "Rough Divide",
                     Description = "Gap-closing attack with high damage",
                     MPCost = 15,
+                    RequiredLevel = 5,
                     Cooldown = 10,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
@@ -232,6 +248,7 @@ namespace FFRogue.Abilities
                     Name = "Cure",
                     Description = "Restore HP",
                     MPCost = 8,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Healing,
                     Execute = (player, game) => {
@@ -244,27 +261,30 @@ namespace FFRogue.Abilities
                 },
                 new AbilityInfo
                 {
-                    Name = "Holy",
-                    Description = "Powerful light-based AoE attack",
-                    MPCost = 15,
-                    Hotkey = '2',
-                    Type = AbilityType.Offensive,
-                    Execute = (player, game) => AttackAdjacentEnemies(player, game, "Holy", 2.0f)
-                },
-                new AbilityInfo
-                {
                     Name = "Stone",
                     Description = "Earth-based ranged attack",
                     MPCost = 6,
-                    Hotkey = '3',
+                    RequiredLevel = 2,
+                    Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Stone", 1.4f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Holy",
+                    Description = "Powerful light-based AoE attack",
+                    MPCost = 15,
+                    RequiredLevel = 5,
+                    Hotkey = '3',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => AttackAdjacentEnemies(player, game, "Holy", 2.0f)
                 },
                 new AbilityInfo
                 {
                     Name = "Assize",
                     Description = "Damages enemies while restoring your MP",
                     MPCost = 12,
+                    RequiredLevel = 8,
                     Cooldown = 15,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -282,27 +302,30 @@ namespace FFRogue.Abilities
             {
                 new AbilityInfo
                 {
-                    Name = "Bio",
-                    Description = "Poison spell that damages over time",
-                    MPCost = 8,
-                    Hotkey = '1',
-                    Type = AbilityType.Offensive,
-                    Execute = (player, game) => CastRangedSpell(player, game, "Bio", 1.2f)
-                },
-                new AbilityInfo
-                {
                     Name = "Ruin",
                     Description = "Basic attack spell",
                     MPCost = 6,
-                    Hotkey = '2',
+                    RequiredLevel = 1,
+                    Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Ruin", 1.1f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Bio",
+                    Description = "Poison spell that damages over time",
+                    MPCost = 8,
+                    RequiredLevel = 3,
+                    Hotkey = '2',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Bio", 1.2f)
                 },
                 new AbilityInfo
                 {
                     Name = "Energy Drain",
                     Description = "Drains enemy energy and restores your MP",
                     MPCost = 5,
+                    RequiredLevel = 6,
                     Cooldown = 8,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
@@ -326,27 +349,30 @@ namespace FFRogue.Abilities
                     Name = "Malefic",
                     Description = "Dark star magic damages target",
                     MPCost = 7,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Malefic", 1.3f)
                 },
                 new AbilityInfo
                 {
-                    Name = "Gravity",
-                    Description = "Gravitational force damages all nearby enemies",
-                    MPCost = 14,
-                    Hotkey = '2',
-                    Type = AbilityType.Offensive,
-                    Execute = (player, game) => AttackAdjacentEnemies(player, game, "Gravity", 1.4f)
-                },
-                new AbilityInfo
-                {
                     Name = "Combust",
                     Description = "Burning star effect with damage over time",
                     MPCost = 9,
-                    Hotkey = '3',
+                    RequiredLevel = 3,
+                    Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Combust", 1.5f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Gravity",
+                    Description = "Gravitational force damages all nearby enemies",
+                    MPCost = 14,
+                    RequiredLevel = 6,
+                    Hotkey = '3',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => AttackAdjacentEnemies(player, game, "Gravity", 1.4f)
                 }
             };
 
@@ -357,6 +383,7 @@ namespace FFRogue.Abilities
                     Name = "Dosis",
                     Description = "Inject harmful toxins into target",
                     MPCost = 6,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Dosis", 1.2f)
@@ -366,6 +393,7 @@ namespace FFRogue.Abilities
                     Name = "Dyskrasia",
                     Description = "Area toxin attack affecting nearby enemies",
                     MPCost = 12,
+                    RequiredLevel = 4,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Dyskrasia", 1.3f)
@@ -375,6 +403,7 @@ namespace FFRogue.Abilities
                     Name = "Toxikon",
                     Description = "Concentrated poison attack",
                     MPCost = 10,
+                    RequiredLevel = 7,
                     Cooldown = 6,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
@@ -390,6 +419,7 @@ namespace FFRogue.Abilities
                     Name = "Focus",
                     Description = "Increase accuracy and critical hit chance",
                     MPCost = 5,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Utility,
                     Execute = (player, game) => {
@@ -400,11 +430,22 @@ namespace FFRogue.Abilities
                 },
                 new AbilityInfo
                 {
+                    Name = "Bootshine",
+                    Description = "Critical strike combo opener",
+                    MPCost = 8,
+                    RequiredLevel = 2,
+                    Hotkey = '2',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Bootshine", 1.8f)
+                },
+                new AbilityInfo
+                {
                     Name = "Chakra",
                     Description = "Restore MP and some HP",
                     MPCost = 0,
+                    RequiredLevel = 4,
                     Cooldown = 10,
-                    Hotkey = '2',
+                    Hotkey = '3',
                     Type = AbilityType.Healing,
                     Execute = (player, game) => {
                         int mpRestore = player.MaxMP / 3;
@@ -417,18 +458,10 @@ namespace FFRogue.Abilities
                 },
                 new AbilityInfo
                 {
-                    Name = "Bootshine",
-                    Description = "Critical strike combo opener",
-                    MPCost = 8,
-                    Hotkey = '3',
-                    Type = AbilityType.Offensive,
-                    Execute = (player, game) => CastRangedSpell(player, game, "Bootshine", 1.8f)
-                },
-                new AbilityInfo
-                {
                     Name = "Howling Fist",
                     Description = "Ranged wind-based attack",
                     MPCost = 12,
+                    RequiredLevel = 6,
                     Cooldown = 8,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -443,34 +476,38 @@ namespace FFRogue.Abilities
                     Name = "True Thrust",
                     Description = "Precise spear attack",
                     MPCost = 7,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "True Thrust", 1.4f)
                 },
                 new AbilityInfo
                 {
-                    Name = "Jump",
-                    Description = "Leap attack from above",
-                    MPCost = 12,
-                    Cooldown = 6,
-                    Hotkey = '2',
-                    Type = AbilityType.Offensive,
-                    Execute = (player, game) => CastRangedSpell(player, game, "Jump", 2.0f)
-                },
-                new AbilityInfo
-                {
                     Name = "Doom Spike",
                     Description = "Line AoE spear attack",
                     MPCost = 15,
-                    Hotkey = '3',
+                    RequiredLevel = 3,
+                    Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Doom Spike", 1.3f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Jump",
+                    Description = "Leap attack from above",
+                    MPCost = 12,
+                    RequiredLevel = 4,
+                    Cooldown = 6,
+                    Hotkey = '3',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Jump", 2.0f)
                 },
                 new AbilityInfo
                 {
                     Name = "Spineshatter Dive",
                     Description = "Devastating diving attack",
                     MPCost = 18,
+                    RequiredLevel = 7,
                     Cooldown = 12,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -485,6 +522,7 @@ namespace FFRogue.Abilities
                     Name = "Spinning Edge",
                     Description = "Swift blade attack",
                     MPCost = 6,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Spinning Edge", 1.2f)
@@ -494,28 +532,31 @@ namespace FFRogue.Abilities
                     Name = "Throwing Dagger",
                     Description = "Ranged throwing weapon",
                     MPCost = 8,
+                    RequiredLevel = 2,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Throwing Dagger", 1.1f)
                 },
                 new AbilityInfo
                 {
-                    Name = "Assassinate",
-                    Description = "High damage stealth attack",
-                    MPCost = 15,
-                    Cooldown = 10,
-                    Hotkey = '3',
-                    Type = AbilityType.Offensive,
-                    Execute = (player, game) => CastRangedSpell(player, game, "Assassinate", 2.3f)
-                },
-                new AbilityInfo
-                {
                     Name = "Death Blossom",
                     Description = "Spinning attack hitting all nearby enemies",
                     MPCost = 14,
-                    Hotkey = '4',
+                    RequiredLevel = 4,
+                    Hotkey = '3',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Death Blossom", 1.4f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Assassinate",
+                    Description = "High damage stealth attack",
+                    MPCost = 15,
+                    RequiredLevel = 6,
+                    Cooldown = 10,
+                    Hotkey = '4',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Assassinate", 2.3f)
                 }
             };
 
@@ -526,26 +567,18 @@ namespace FFRogue.Abilities
                     Name = "Hakaze",
                     Description = "Basic katana strike",
                     MPCost = 6,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Hakaze", 1.3f)
                 },
                 new AbilityInfo
                 {
-                    Name = "Iaijutsu",
-                    Description = "Quick-draw technique",
-                    MPCost = 12,
-                    Cooldown = 8,
-                    Hotkey = '2',
-                    Type = AbilityType.Offensive,
-                    Execute = (player, game) => CastRangedSpell(player, game, "Iaijutsu", 2.1f)
-                },
-                new AbilityInfo
-                {
                     Name = "Fuga",
                     Description = "Wide sweeping attack",
                     MPCost = 10,
-                    Hotkey = '3',
+                    RequiredLevel = 3,
+                    Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Fuga", 1.2f)
                 },
@@ -554,10 +587,22 @@ namespace FFRogue.Abilities
                     Name = "Hissatsu: Shinten",
                     Description = "Secret sword technique",
                     MPCost = 16,
+                    RequiredLevel = 5,
                     Cooldown = 6,
-                    Hotkey = '4',
+                    Hotkey = '3',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Shinten", 2.2f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Iaijutsu",
+                    Description = "Quick-draw technique",
+                    MPCost = 12,
+                    RequiredLevel = 7,
+                    Cooldown = 8,
+                    Hotkey = '4',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Iaijutsu", 2.1f)
                 }
             };
 
@@ -568,6 +613,7 @@ namespace FFRogue.Abilities
                     Name = "Slice",
                     Description = "Basic scythe attack",
                     MPCost = 7,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Slice", 1.3f)
@@ -577,6 +623,7 @@ namespace FFRogue.Abilities
                     Name = "Spinning Scythe",
                     Description = "Rotating scythe attack hitting multiple enemies",
                     MPCost = 12,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Spinning Scythe", 1.3f)
@@ -586,6 +633,7 @@ namespace FFRogue.Abilities
                     Name = "Shadow of Death",
                     Description = "Death magic that damages over time",
                     MPCost = 10,
+                    RequiredLevel = 4,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Shadow of Death", 1.6f)
@@ -595,6 +643,7 @@ namespace FFRogue.Abilities
                     Name = "Soul Slice",
                     Description = "Soul-draining attack that restores MP",
                     MPCost = 8,
+                    RequiredLevel = 6,
                     Cooldown = 10,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -611,6 +660,51 @@ namespace FFRogue.Abilities
                 }
             };
 
+            JobAbilities[Job.VPR] = new List<AbilityInfo>
+            {
+                new AbilityInfo
+                {
+                    Name = "Steel Fangs",
+                    Description = "Twin blade strike",
+                    MPCost = 6,
+                    RequiredLevel = 1,
+                    Hotkey = '1',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Steel Fangs", 1.3f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Dread Fangs",
+                    Description = "Poisonous bite attack",
+                    MPCost = 8,
+                    RequiredLevel = 3,
+                    Hotkey = '2',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Dread Fangs", 1.5f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Pit of Dread",
+                    Description = "AoE poison field",
+                    MPCost = 14,
+                    RequiredLevel = 5,
+                    Hotkey = '3',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => AttackAdjacentEnemies(player, game, "Pit of Dread", 1.4f)
+                },
+                new AbilityInfo
+                {
+                    Name = "Reawaken",
+                    Description = "Unleash serpent power",
+                    MPCost = 18,
+                    RequiredLevel = 8,
+                    Cooldown = 15,
+                    Hotkey = '4',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Reawaken", 2.5f)
+                }
+            };
+
             // MAGIC DPS
             JobAbilities[Job.BLM] = new List<AbilityInfo>
             {
@@ -619,33 +713,37 @@ namespace FFRogue.Abilities
                     Name = "Fire",
                     Description = "Ranged fire spell",
                     MPCost = 6,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Fire", 1.3f)
+                },
+               new AbilityInfo
+                {
+                    Name = "Blizzard",
+                    Description = "Ice magic with slowing effect",
+                    MPCost = 8,
+                    RequiredLevel = 2,
+                    Hotkey = '2',
+                    Type = AbilityType.Offensive,
+                    Execute = (player, game) => CastRangedSpell(player, game, "Blizzard", 1.4f)
                 },
                 new AbilityInfo
                 {
                     Name = "Thunder",
                     Description = "Lightning spell hitting multiple enemies",
                     MPCost = 12,
-                    Hotkey = '2',
-                    Type = AbilityType.Offensive,
-                    Execute = (player, game) => AttackAdjacentEnemies(player, game, "Thunder", 1.8f)
-                },
-                new AbilityInfo
-                {
-                    Name = "Blizzard",
-                    Description = "Ice magic with slowing effect",
-                    MPCost = 8,
+                    RequiredLevel = 4,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
-                    Execute = (player, game) => CastRangedSpell(player, game, "Blizzard", 1.4f)
+                    Execute = (player, game) => AttackAdjacentEnemies(player, game, "Thunder", 1.8f)
                 },
                 new AbilityInfo
                 {
                     Name = "Flare",
                     Description = "Massive AoE explosion",
                     MPCost = 25,
+                    RequiredLevel = 7,
                     Cooldown = 12,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -669,6 +767,7 @@ namespace FFRogue.Abilities
                     Name = "Outburst",
                     Description = "AoE summon attack",
                     MPCost = 12,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Outburst", 1.4f)
@@ -678,6 +777,7 @@ namespace FFRogue.Abilities
                     Name = "Fester",
                     Description = "Powerful single target summon spell",
                     MPCost = 15,
+                    RequiredLevel = 5,
                     Cooldown = 8,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
@@ -688,6 +788,7 @@ namespace FFRogue.Abilities
                     Name = "Deathflare",
                     Description = "Ultimate summon attack",
                     MPCost = 22,
+                    RequiredLevel = 8,
                     Cooldown = 15,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -702,6 +803,7 @@ namespace FFRogue.Abilities
                     Name = "Jolt",
                     Description = "Basic magic attack",
                     MPCost = 5,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Jolt", 1.1f)
@@ -711,6 +813,7 @@ namespace FFRogue.Abilities
                     Name = "Verthunder",
                     Description = "Black magic lightning spell",
                     MPCost = 8,
+                    RequiredLevel = 2,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Verthunder", 1.5f)
@@ -720,6 +823,7 @@ namespace FFRogue.Abilities
                     Name = "Veraero",
                     Description = "White magic wind spell",
                     MPCost = 8,
+                    RequiredLevel = 3,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Veraero", 1.5f)
@@ -729,6 +833,7 @@ namespace FFRogue.Abilities
                     Name = "Scatter",
                     Description = "AoE spell affecting nearby enemies",
                     MPCost = 14,
+                    RequiredLevel = 5,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Scatter", 1.3f)
@@ -740,8 +845,9 @@ namespace FFRogue.Abilities
                 new AbilityInfo
                 {
                     Name = "Water Cannon",
-                    Description = "Learned water spell from monsters",
+                    Description = "Basic water spell",
                     MPCost = 8,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Water Cannon", 1.3f)
@@ -751,6 +857,7 @@ namespace FFRogue.Abilities
                     Name = "Sonic Boom",
                     Description = "Sound-based AoE attack",
                     MPCost = 12,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Sonic Boom", 1.4f)
@@ -760,6 +867,7 @@ namespace FFRogue.Abilities
                     Name = "Bad Breath",
                     Description = "Debilitating breath attack",
                     MPCost = 15,
+                    RequiredLevel = 6,
                     Cooldown = 10,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
@@ -770,6 +878,7 @@ namespace FFRogue.Abilities
                     Name = "1000 Needles",
                     Description = "Fixed damage needle attack",
                     MPCost = 18,
+                    RequiredLevel = 9,
                     Cooldown = 12,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -785,6 +894,7 @@ namespace FFRogue.Abilities
                     Name = "Heavy Shot",
                     Description = "Powerful bow attack",
                     MPCost = 6,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Heavy Shot", 1.3f)
@@ -794,6 +904,7 @@ namespace FFRogue.Abilities
                     Name = "Quick Nock",
                     Description = "Wide shot hitting multiple targets",
                     MPCost = 10,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Quick Nock", 1.1f)
@@ -801,9 +912,10 @@ namespace FFRogue.Abilities
                 new AbilityInfo
                 {
                     Name = "Bloodletter",
-                    Description = "Critical shot with bleeding effect",
+                    Description = "Critical shot",
                     MPCost = 12,
                     Cooldown = 6,
+                    RequiredLevel = 6,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Bloodletter", 1.8f)
@@ -813,6 +925,7 @@ namespace FFRogue.Abilities
                     Name = "Rain of Death",
                     Description = "Arrow rain affecting large area",
                     MPCost = 16,
+                    RequiredLevel = 8,
                     Cooldown = 10,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -827,6 +940,7 @@ namespace FFRogue.Abilities
                     Name = "Split Shot",
                     Description = "Basic firearm attack",
                     MPCost = 6,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Split Shot", 1.2f)
@@ -836,6 +950,7 @@ namespace FFRogue.Abilities
                     Name = "Spread Shot",
                     Description = "Shotgun blast hitting multiple enemies",
                     MPCost = 10,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Spread Shot", 1.2f)
@@ -843,8 +958,9 @@ namespace FFRogue.Abilities
                 new AbilityInfo
                 {
                     Name = "Hot Shot",
-                    Description = "Burning ammunition with damage over time",
+                    Description = "Burning ammunition",
                     MPCost = 12,
+                    RequiredLevel = 6,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Hot Shot", 1.6f)
@@ -852,8 +968,9 @@ namespace FFRogue.Abilities
                 new AbilityInfo
                 {
                     Name = "Wildfire",
-                    Description = "Explosive delayed damage",
+                    Description = "Explosive damage",
                     MPCost = 20,
+                    RequiredLevel = 8,
                     Cooldown = 15,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -868,6 +985,7 @@ namespace FFRogue.Abilities
                     Name = "Cascade",
                     Description = "Graceful throwing weapon attack",
                     MPCost = 6,
+                    RequiredLevel = 1,
                     Hotkey = '1',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => CastRangedSpell(player, game, "Cascade", 1.1f)
@@ -877,6 +995,7 @@ namespace FFRogue.Abilities
                     Name = "Windmill",
                     Description = "Spinning attack hitting nearby enemies",
                     MPCost = 10,
+                    RequiredLevel = 3,
                     Hotkey = '2',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Windmill", 1.2f)
@@ -886,6 +1005,7 @@ namespace FFRogue.Abilities
                     Name = "Rising Windmill",
                     Description = "Enhanced spinning attack",
                     MPCost = 14,
+                    RequiredLevel = 6,
                     Hotkey = '3',
                     Type = AbilityType.Offensive,
                     Execute = (player, game) => AttackAdjacentEnemies(player, game, "Rising Windmill", 1.5f)
@@ -895,6 +1015,7 @@ namespace FFRogue.Abilities
                     Name = "Starfall Dance",
                     Description = "Elegant finishing move",
                     MPCost = 18,
+                    RequiredLevel = 9,
                     Cooldown = 12,
                     Hotkey = '4',
                     Type = AbilityType.Offensive,
@@ -938,9 +1059,12 @@ namespace FFRogue.Abilities
             }
         }
 
-        public static List<AbilityInfo> GetAbilitiesForJob(Job job)
+        public static List<AbilityInfo> GetAbilitiesForJob(Job job, int playerLevel = 1)
         {
-            return JobAbilities.ContainsKey(job) ? JobAbilities[job] : new List<AbilityInfo>();
+            if (!JobAbilities.ContainsKey(job))
+                return new List<AbilityInfo>();
+
+            return JobAbilities[job].Where(ability => ability.RequiredLevel <= playerLevel).ToList();
         }
 
         public static AbilityResult UseAbility(Player player, Game game, AbilityInfo ability)

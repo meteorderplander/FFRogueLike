@@ -14,3 +14,8 @@ Version 0.0.2
 - Changed the bosses so that they appear alone on the boss floors. Stairs no longer appear until bosses are beat.
 - Changed bosses so that each boss floor has access to only a certain number of boss names to prevent repeating.
 - Removed the stairs leading up.  The game is now all about going down.
+
+Version 0.0.3
+- Added chests that can spawn (appear as C) but they cannot be opened yet.
+- Changed abilities so that jobs earn them upon leveling up instead of having them all unlocked from the start.
+- Changed the name of monsters that spawn on floors to be more FF like.
